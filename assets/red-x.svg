@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img"
+  aria-label="Red X strike">
+  <defs>
+    <linearGradient id="rx" x1="0" x2="1">
+      <stop offset="0%" stop-color="#ff5f6d" />
+      <stop offset="100%" stop-color="#ff2a2a" />
+    </linearGradient>
+    <filter id="drop" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.6" />
+    </filter>
+  </defs>
+  <g filter="url(#drop)">
+    <rect x="8" y="8" width="104" height="104" rx="18" ry="18" fill="none" />
+    <g stroke="url(#rx)" stroke-width="14" stroke-linecap="round">
+      <line x1="26" y1="26" x2="94" y2="94" />
+      <line x1="94" y1="26" x2="26" y2="94" />
+    </g>
+  </g>
+</svg>

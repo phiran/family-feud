@@ -1,29 +1,60 @@
-<div class="fast-money-board" style="display: none;">
-        <h1>Fast Money!</h1>
-        <div id="fm-timer" class="score">20</div>
-        
-        <div class="fm-container">
-            <div class="fm-player-column">
-                <h2 id="fm-question-1">Question 1</h2>
-                <div class="fm-qa"> <input type="text" class="fm-player1-input"> <span class="fm-score fm-player1-score hidden">0</span> </div>
-                <div class="fm-qa"> <input type="text" class="fm-player1-input"> <span class="fm-score fm-player1-score hidden">0</span> </div>
-                <div class="fm-qa"> <input type="text" class="fm-player1-input"> <span class="fm-score fm-player1-score hidden">0</span> </div>
-                <div class="fm-qa"> <input type="text" class="fm-player1-input"> <span class="fm-score fm-player1-score hidden">0</span> </div>
-                <div class="fm-qa"> <input type="text" class="fm-player1-input"> <span class="fm-score fm-player1-score hidden">0</span> </div>
-                <button id="submit-p1">Submit Player 1</button>
-            </div>
+<!DOCTYPE html>
+<html lang="en">
 
-            <div class="fm-player-column">
-                <h2 id="fm-question-2">Question 2</h2>
-                <div class="fm-qa"> <input type="text" class="fm-player2-input"> <span class="fm-score fm-player2-score hidden">0</span> </div>
-                <div class="fm-qa"> <input type="text" class="fm-player2-input"> <span class="fm-score fm-player2-score hidden">0</span> </div>
-                <div class="fm-qa"> <input type="text" class="fm-player2-input"> <span class="fm-score fm-player2-score hidden">0</span> </div>
-                <div class="fm-qa"> <input type="text" class="fm-player2-input"> <span class="fm-score fm-player2-score hidden">0</span> </div>
-                <div class="fm-qa"> <input type="text" class="fm-player2-input"> <span class="fm-score fm-player2-score hidden">0</span> </div>
-                <button id="submit-p2" disabled>Submit Player 2</button>
-            </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>American Car Feud</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Improved font for the board display -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="start-page" id="start-page">
+        <div class="title-container">
+            <img id="splash-image" src="assets/family-feud-start-01.webp" alt="Family Feud Start"
+                style="max-width:80vw; display:block; margin:0 auto;" />
         </div>
-        <h2 id="fm-final-score"></h2>
+        <button id="start-game-btn">Start Game</button>
+        <!-- Loading overlay shown while questions.json is fetched -->
+        <div id="loading-overlay" class="loading-overlay hidden" aria-hidden="true">
+            <div class="loader" role="status" aria-label="Loading"></div>
+            <div class="loading-text">Loading…</div>
+        </div>
+    </div>
+    <div class="game-board-container" id="game-board-container" style="display: none;">
+        <div class="game-board">
+            <h1 id="question"></h1>
+            <div id="answers"></div>
+            <div class="scores">
+                <div class="team">
+                    <h2>Team 1</h2>
+                    <div class="score" id="team1-score">0</div>
+                </div>
+                <div class="strikes">
+                    <img src="assets/red-x.svg" class="strike hidden" alt="strike">
+                    <img src="assets/red-x.svg" class="strike hidden" alt="strike">
+                    <img src="assets/red-x.svg" class="strike hidden" alt="strike">
+                </div>
+                <div class="team">
+                    <h2>Team 2</h2>
+                    <div class="score" id="team2-score">0</div>
+                </div>
+            </div>
+            <button id="next-round">Next Round</button>
+        </div>
     </div>
 
+    <div class="fast-money-board" style="display: none;">
+        <div class="fast-money-container">
+            <img src="assets/fast-money-board.svg" alt="Fast Money Board"
+                style="max-width:90vw; height:auto; display:block; margin: 20px auto;" />
+        </div>
+    </div>
     <button id="start-fast-money" style="display: none;">Start Fast Money</button>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -1,70 +1,196 @@
-/* Fast Money Styling */
-.fast-money-board {
-    background-color: rgba(0, 0, 0, 0.7);
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    width: 80%;
-    max-width: 900px;
-}
-
-#fm-timer {
-    font-size: 3em;
-    color: #ffc107;
-}
-
-.fm-container {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 20px;
-}
-
-.fm-player-column {
-    width: 45%;
-}
-
-.fm-qa {
-    display: flex;
-    margin-bottom: 10px;
-}
-
-.fm-qa input {
-    flex-grow: 1;
-    padding: 8px;
-    font-size: 1em;
-    border: 1px solid #ddd;
-}
-
-.fm-score {
-    width: 50px;
-    background-color: #4CAF50;
+/* --- Global Styles --- */
+body {
+    font-family: 'Montserrat', Arial, sans-serif;
+    /* Body background removed to rely on .game-board-container image */
+    background: #111; /* fallback dark background */
     color: white;
-    font-size: 1.2em;
-    padding: 8px;
-    text-align: center;
-    border-radius: 0 5px 5px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden; /* Prevent scrolling if the board is larger than viewport */
 }
 
-#submit-p1, #submit-p2 {
-    padding: 10px 20px;
-    font-size: 1em;
+/* --- Start Page / Splash Styles --- */
+.start-page {
+    position: absolute;
+    inset: 0; /* top:0; right:0; bottom:0; left:0 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0,0,0,0.5); /* dim the board behind the splash */
+    z-index: 50;
+}
+
+#start-page .title-container {
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+#start-game-btn {
+    font-size: 1.4rem;
+    padding: 12px 28px;
+    border-radius: 8px;
+    border: none;
     cursor: pointer;
-    margin-top: 10px;
+    background: linear-gradient(180deg, #ffd54f, #ffb300);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    color: #222;
 }
 
-#fm-final-score {
-    margin-top: 20px;
-    font-size: 2.5em;
-    color: #ffc107;
+/* Loading overlay inside the splash */
+.loading-overlay {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    top: 10%;
+    right: 10%;
+    padding: 12px 18px;
+    background: rgba(0,0,0,0.65);
+    border-radius: 8px;
+    color: #fff;
+    z-index: 60;
 }
 
-/* Original Answer Styling Update */
+.loading-overlay.hidden { display: none; }
+
+.loader {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 4px solid rgba(255,255,255,0.15);
+    border-top-color: #fff;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    font-size: 0.9rem;
+    opacity: 0.95;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* --- New Game Board Container --- */
+.game-board-container {
+    position: relative; /* Essential for absolute positioning of children */
+    width: 100vw;
+    height: 100vh;
+    /* Prefer SVG vector background for crisp scaling; fall back to PNG if needed */
+    background-image: url('assets/game-board-background.svg');
+    background-image: image-set(
+        url('assets/game-board-background.svg') type('image/svg+xml') 1x,
+        url('assets/game-board-background.png') type('image/png') 1x
+    );
+    background-size: contain; /* Make sure the entire board is visible */
+    background-repeat: no-repeat;
+    background-position: center; /* Center the board */
+    display: flex; /* Using flexbox to center the game-board content */
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Hide anything that overflows */
+}
+
+/* --- Dev debug overlays (hidden by default) --- */
+:root { --debug-color: rgba(255,0,0,0.6); }
+.debug .debug-box {
+    position: absolute;
+    border: 2px dashed var(--debug-color);
+    background: rgba(255,0,0,0.06);
+    z-index: 120 !important;
+    pointer-events: none;
+}
+
+/* hidden by default; add .debug to body to show */
+.debug #question.debug-box { top: 27%; left: 50%; width: 38%; height: 10%; transform: translate(-50%, -50%); }
+.debug #answers.debug-box { top: 45%; left: 50%; width: 56%; height: 46%; transform: translateX(-50%); }
+.debug .answer.debug-box { /* generic answer box size for dev */ }
+
+/* Per-answer debug boxes */
+.debug .answer-debug {
+    position: absolute;
+    border: 2px dashed rgba(0,200,0,0.7);
+    background: rgba(0,200,0,0.06);
+    z-index: 130 !important;
+    pointer-events: auto; /* allow dragging */
+}
+
+.answer-debug .handle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    right: 4px;
+    bottom: 4px;
+    background: rgba(0,200,0,0.9);
+    border-radius: 2px;
+    cursor: nwse-resize;
+    z-index: 140;
+}
+
+/* The .game-board itself will now just be a wrapper for dynamic content */
+.game-board {
+    position: relative; /* For positioning elements within this area */
+    width: 100%; /* Take up the full width of its parent container */
+    height: 100%; /* Take up the full height */
+    max-width: 1100px; /* Adjust this to match the apparent width of your image */
+    max-height: 700px; /* Adjust this to match the apparent height of your image */
+    transition: transform 300ms ease, opacity 300ms ease;
+}
+
+/* --- Question Styling (Overlay on the black box) --- */
+#question {
+    position: absolute;
+    top: 27%; /* Adjust based on image */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 38%; /* Adjust width to fit the black box */
+    height: 10%; /* Adjust height to fit the black box */
+    font-size: clamp(1.6rem, 2.2vw, 2.6rem);
+    color: white; /* Text color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8); /* Stronger shadow for readability */
+    margin: 0;
+}
+
+/* --- Answers Grid Styling (Overlay on the 6 boxes) --- */
+#answers {
+    position: absolute;
+    top: 45%; /* Top of the grid section */
+    left: 50%;
+    transform: translateX(-50%);
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns */
+    gap: 15px 30px; /* Vertical and horizontal gap between answers */
+    width: 56%; /* Adjust total width of the grid */
+    height: 46%; /* Adjust total height of the grid */
+    padding-top: 5px; /* Fine-tune vertical position */
+}
+
 .answer {
+    /* No background or border here, as they are part of the image */
+    /* Instead, we'll style the text itself and the cover */
     position: relative;
-    color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: clamp(1rem, 1.8vw, 1.6rem); /* Responsive sizing */
+    color: white; /* Text color */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+    cursor: pointer;
+    /* Optional: padding if needed to center text within the image box */
+    padding: 10px 15px;
+    overflow: hidden;
+    border-radius: 6px;
+    transition: transform 180ms ease;
 }
 
 .answer-cover {
@@ -73,11 +199,113 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #00008b;
-    border: 2px solid #add8e6;
-    border-radius: 5px;
+    background-color: #00008b; /* Blue color to cover the answer */
+    border-radius: 5px; /* Match the rounded corners of the image boxes */
+    z-index: 1; /* Make sure cover is on top */
+    /* Add a border to the cover to match the image's inner border */
+    border: 3px solid #add8e6; 
+    transition: transform 300ms cubic-bezier(.2,.8,.2,1), opacity 200ms ease;
+}
+
+.answer.revealed .answer-cover {
+    transform: scaleY(0.02);
+    opacity: 0;
+}
+
+.answer:active {
+    transform: translateY(2px);
+}
+
+/* Fast Money styles */
+.fast-money-board {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+}
+
+.fast-money-board img {
+    width: min(95vw, 1100px);
+    height: auto;
+}
+
+.answer .text {
+    position: relative; /* Needed to be above the cover */
+    z-index: 2;
+    text-align: left;
+    flex-grow: 1;
+}
+
+.answer .points {
+    position: relative; /* Needed to be above the cover */
+    z-index: 2;
+    font-weight: bold;
+    margin-left: 10px;
 }
 
 .answer .hidden {
     visibility: hidden;
 }
+
+/* --- Scores and Strikes (Positioned at the bottom) --- */
+.scores {
+    position: absolute;
+    bottom: 5%; /* Adjust distance from the bottom */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 80%; /* Adjust width as needed */
+    max-width: 700px;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.team {
+    background-color: transparent; /* No background for team boxes */
+    padding: 0;
+}
+
+.team h2 {
+    font-size: 1.5em;
+    margin-bottom: 5px;
+}
+
+.score {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #ffc107; /* Highlight score color */
+}
+
+.strikes img {
+    width: 60px; /* Slightly larger strikes */
+    margin: 0 8px;
+    filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.7)); /* Shadow for X's */
+}
+
+/* --- Next Round Button --- */
+#next-round {
+    position: absolute;
+    bottom: 0.5%; /* Adjust as needed */
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 30px;
+    font-size: 1.2em;
+    cursor: pointer;
+    background-color: #008CBA; /* Example button color */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 3px 3px 5px rgba(0,0,0,0.5);
+    transition: background-color 0.3s ease;
+}
+
+#next-round:hover {
+    background-color: #005f7a;
+}
+
