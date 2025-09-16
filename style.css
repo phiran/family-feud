@@ -212,6 +212,19 @@ body {
     opacity: 0;
 }
 
+/* SVG slot pulse animation for revealed answers */
+.slot-pulse {
+    animation: slotPulse 900ms ease-out;
+    stroke-width: 8 !important;
+    fill: rgba(255,215,0,0.08) !important;
+}
+
+@keyframes slotPulse {
+    0% { stroke-opacity: 1; transform: scale(1); }
+    50% { stroke-opacity: 1; transform: scale(1.02); }
+    100% { stroke-opacity: 0.9; transform: scale(1); }
+}
+
 .answer:active {
     transform: translateY(2px);
 }

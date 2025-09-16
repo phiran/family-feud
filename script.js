@@ -39,35 +39,34 @@ document.addEventListener('DOMContentLoaded', () => {
     let timer = null;
     // Debug flag: enable via ?debug=1 or toggle with Shift+D
     let debugMode = new URLSearchParams(window.location.search).get('debug') === '1';
-    // Inline the SVG board so JS can reference named regions (slot-1..slot-6)
-    async function inlineBoardSVG() {
-        const container = document.querySelector('.game-board-container');
-        if (!container) return null;
+    // The SVG is embedded directly in index.html as #board-svg
+    function getBoardSVG() {
+        return document.getElementById('board-svg');
+    }
+
+    // Storage key for debug positions
+    const DEBUG_POS_KEY = 'ff_debug_positions_v1';
+
+    function loadSavedPositions() {
         try {
-            const resp = await fetch('assets/game-board-background.svg');
-            if (!resp.ok) return null;
-            const text = await resp.text();
-            // Parse and insert as inline SVG
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(text, 'image/svg+xml');
-            const svg = doc.querySelector('svg');
-            if (!svg) return null;
-            svg.setAttribute('id', 'board-svg');
-            // make sure the svg scales responsively and doesn't capture pointer events
-            svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-            svg.style.width = '100%';
-            svg.style.height = '100%';
-            svg.style.position = 'absolute';
-            svg.style.left = '0';
-            svg.style.top = '0';
-            svg.style.pointerEvents = 'none';
-            // insert as the first child so overlays sit above
-            container.insertBefore(svg, container.firstChild);
-            return svg;
-        } catch (err) {
-            console.warn('Could not inline SVG board:', err);
-            return null;
-        }
+            const raw = localStorage.getItem(DEBUG_POS_KEY);
+            if (!raw) return null;
+            return JSON.parse(raw);
+        } catch (e) { return null; }
+    }
+
+    function savePositions(obj) {
+        try { localStorage.setItem(DEBUG_POS_KEY, JSON.stringify(obj)); } catch (e) { }
+    }
+
+    function exportPositionsAsCSS(obj) {
+        // Small CSS snippet that positions answer-debug boxes by index
+        let css = '/* Paste into style.css (adjust selector as needed) */\n';
+        Object.keys(obj).forEach(k => {
+            const p = obj[k];
+            css += `.answer-debug[data-index="${k}"]{ left:${p.left}; top:${p.top}; width:${p.width}; height:${p.height}; transform:translate(-50%,-50%); }\n`;
+        });
+        return css;
     }
 
     function setDebug(on) {
@@ -101,7 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // create six per-answer boxes. If the inline SVG is present, align to the slot rects
             const perAnswerBoxes = [];
             const answerCount = 6;
-            const svg = document.getElementById('board-svg');
+            const svg = getBoardSVG();
+            // load saved positions if available
+            const saved = loadSavedPositions();
             for (let i = 0; i < answerCount; i++) {
                 const b = document.createElement('div');
                 b.className = 'answer-debug';
@@ -116,10 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // If SVG slot exists, position the debug box to match the slot's bounding box
                 if (svg) {
                     const slotId = 'slot-' + (i + 1);
-                    const slot = document.getElementById(slotId) || svg.querySelector('#' + slotId);
+                    const slot = svg.querySelector('#' + slotId);
                     if (slot) {
                         const slotRect = slot.getBoundingClientRect();
-                        const containerRect = document.querySelector('.game-board-container').getBoundingClientRect();
                         // compute center relative to viewport in percentages
                         const leftPct = (slotRect.left + slotRect.width / 2) / window.innerWidth * 100;
                         const topPct = (slotRect.top + slotRect.height / 2) / window.innerHeight * 100;
@@ -128,6 +128,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         b.style.width = Math.max(40, slotRect.width) + 'px';
                         b.style.height = Math.max(20, slotRect.height) + 'px';
                         b.style.transform = 'translate(-50%, -50%)';
+                        // apply saved override if present
+                        if (saved && saved[i]) {
+                            const s = saved[i];
+                            b.style.left = s.left; b.style.top = s.top; b.style.width = s.width; b.style.height = s.height;
+                        }
                         continue;
                     }
                 }
@@ -143,11 +148,71 @@ document.addEventListener('DOMContentLoaded', () => {
                 b.style.height = '12%';
                 b.style.transform = 'translate(-50%, -50%)';
             }
+
+            // Add simple controls to save/export/import positions
+            const toolBar = document.createElement('div');
+            toolBar.style.position = 'fixed';
+            toolBar.style.top = '8px';
+            toolBar.style.right = '8px';
+            toolBar.style.zIndex = '9999';
+            toolBar.style.display = 'flex';
+            toolBar.style.gap = '8px';
+
+            const saveBtn = document.createElement('button');
+            saveBtn.textContent = 'Save positions';
+            saveBtn.onclick = () => {
+                const obj = {};
+                perAnswerBoxes.forEach(bx => {
+                    const idx = bx.dataset.index;
+                    obj[idx] = { left: bx.style.left, top: bx.style.top, width: bx.style.width, height: bx.style.height };
+                });
+                savePositions(obj);
+                alert('Saved positions to localStorage');
+            };
+
+            const exportBtn = document.createElement('button');
+            exportBtn.textContent = 'Export CSS';
+            exportBtn.onclick = () => {
+                const obj = {};
+                perAnswerBoxes.forEach(bx => {
+                    const idx = bx.dataset.index;
+                    obj[idx] = { left: bx.style.left, top: bx.style.top, width: bx.style.width, height: bx.style.height };
+                });
+                const css = exportPositionsAsCSS(obj);
+                // show in new window for copy/paste
+                const w = window.open('', '_blank');
+                if (w) { w.document.body.textContent = css; }
+            };
+
+            const importBtn = document.createElement('button');
+            importBtn.textContent = 'Import JSON';
+            importBtn.onclick = () => {
+                const t = prompt('Paste exported JSON/positions:');
+                try {
+                    const data = JSON.parse(t || '{}');
+                    perAnswerBoxes.forEach(bx => {
+                        const idx = bx.dataset.index;
+                        if (data[idx]) {
+                            bx.style.left = data[idx].left;
+                            bx.style.top = data[idx].top;
+                            bx.style.width = data[idx].width;
+                            bx.style.height = data[idx].height;
+                        }
+                    });
+                    savePositions(data);
+                    alert('Imported positions');
+                } catch (e) { alert('Invalid JSON'); }
+            };
+
+            toolBar.appendChild(saveBtn);
+            toolBar.appendChild(exportBtn);
+            toolBar.appendChild(importBtn);
+            document.body.appendChild(toolBar);
         }
     }
     setDebug(debugMode);
-    // Inline the SVG before creating debug overlays so boxes can align to slots
-    inlineBoardSVG().then(() => setDebug(debugMode));
+    // Ensure debug overlays align early
+    // setDebug will reference the embedded #board-svg in the DOM
     // Utility: make element draggable and resizable with the provided handle
     function makeDraggableResizable(el, handle) {
         let dragging = false;
@@ -315,6 +380,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const points = answerDiv.querySelector('.points');
                 if (text) text.classList.remove('hidden');
                 if (points) points.classList.remove('hidden');
+                // Animate the SVG slot for this answer (if present)
+                try {
+                    const slot = document.getElementById('slot-' + (index + 1));
+                    if (slot) {
+                        slot.classList.remove('slot-pulse');
+                        // force reflow to restart animation
+                        // eslint-disable-next-line no-unused-expressions
+                        slot.getBoundingClientRect();
+                        slot.classList.add('slot-pulse');
+                        setTimeout(() => slot.classList.remove('slot-pulse'), 1100);
+                    }
+                } catch (e) { /* ignore */ }
                 // Remove the cover from layout after animation
                 setTimeout(() => {
                     const cover = answerDiv.querySelector('.answer-cover');
