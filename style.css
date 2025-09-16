@@ -1,0 +1,83 @@
+/* Fast Money Styling */
+.fast-money-board {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    width: 80%;
+    max-width: 900px;
+}
+
+#fm-timer {
+    font-size: 3em;
+    color: #ffc107;
+}
+
+.fm-container {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.fm-player-column {
+    width: 45%;
+}
+
+.fm-qa {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.fm-qa input {
+    flex-grow: 1;
+    padding: 8px;
+    font-size: 1em;
+    border: 1px solid #ddd;
+}
+
+.fm-score {
+    width: 50px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 1.2em;
+    padding: 8px;
+    text-align: center;
+    border-radius: 0 5px 5px 0;
+}
+
+#submit-p1, #submit-p2 {
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+#fm-final-score {
+    margin-top: 20px;
+    font-size: 2.5em;
+    color: #ffc107;
+}
+
+/* Original Answer Styling Update */
+.answer {
+    position: relative;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.answer-cover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #00008b;
+    border: 2px solid #add8e6;
+    border-radius: 5px;
+}
+
+.answer .hidden {
+    visibility: hidden;
+}
